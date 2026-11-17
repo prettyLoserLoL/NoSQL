@@ -3,6 +3,9 @@ BACKUP_ROOT="$HOME/mongodb_backups"
 mkdir -p "$BACKUP_ROOT"
 BACKUP_DIR="$BACKUP_ROOT/all_$(date +%Y%m%d_%H%M%S)"
 
+# И ЗДЕСЬ ТОЖЕ:
+mkdir -p "$BACKUP_DIR"
+
 for DB_NAME in "edu_db1" "edu_db2"; do
   mongodump \
     --username adminSofia \

@@ -4,6 +4,9 @@ BACKUP_ROOT="$HOME/mongodb_backups"
 mkdir -p "$BACKUP_ROOT"
 BACKUP_DIR="$BACKUP_ROOT/backup_$(date +%Y%m%d_%H%M%S)"
 
+# ВОТ ЭТА СТРОЧКА ИСПРАВИТ ОШИБКУ:
+mkdir -p "$BACKUP_DIR"
+
 mongodump \
   --host 127.0.0.1 \
   --port 27017 \
