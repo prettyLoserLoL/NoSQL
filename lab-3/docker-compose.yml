@@ -1,0 +1,96 @@
+services:
+  sofia-postgres:
+    image: postgres:16-alpine
+    container_name: sofia-postgres
+    environment:
+      POSTGRES_DB: sofia_hospital_db
+      POSTGRES_USER: sofia_doctor
+      POSTGRES_PASSWORD: SofiaHospital2026!
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - sofia-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sofia_doctor -d sofia_hospital_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  sofia-redis:
+    image: redis:7.2-alpine
+    container_name: sofia-redis
+    ports:
+      - "6379:6379"
+    command: [
+      "redis-server",
+      "--requirepass", "SofiaRedis2026!",
+      "--maxmemory", "128mb",
+      "--maxmemory-policy", "allkeys-lru",
+      "--save", "",
+      "--appendonly", "no"
+    ]
+    networks:
+      - sofia-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "SofiaRedis2026!", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  sofia-redis-exporter:
+    image: oliver006/redis_exporter:v1.58.0-alpine
+    container_name: sofia-redis-exporter
+    environment:
+      - REDIS_ADDR=redis://sofia-redis:6379
+      - REDIS_PASSWORD=SofiaRedis2026!
+    networks:
+      - sofia-net
+    ports:
+      - "9121:9121"
+
+  sofia-app:
+    build: ./app
+    container_name: sofia-app
+    environment:
+      - PG_HOST=sofia-postgres
+      - PG_PORT=5432
+      - PG_DB=sofia_hospital_db
+      - PG_USER=sofia_doctor
+      - PG_PASS=SofiaHospital2026!
+      - REDIS_HOST=sofia-redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=SofiaRedis2026!
+      - CACHE_TTL=120
+    ports:
+      - "8000:8000"
+    depends_on:
+      sofia-postgres:
+        condition: service_healthy
+      sofia-redis:
+        condition: service_healthy
+    networks:
+      - sofia-net
+
+  sofia-prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: sofia-prometheus-lab3
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9092:9090"
+    networks:
+      - sofia-net
+
+  sofia-grafana:
+    image: grafana/grafana:10.4.0
+    container_name: sofia-grafana-lab3
+    ports:
+      - "3003:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=SofiaGrafana2026!
+    networks:
+      - sofia-net
+
+networks:
+  sofia-net:
+    driver: bridge

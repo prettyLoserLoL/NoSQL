@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 2s
+
+scrape_configs:
+  - job_name: "sofia-app"
+    static_configs:
+      - targets: ["sofia-app:8000"]
+
+  - job_name: "sofia-redis"
+    static_configs:
+      - targets: ["sofia-redis-exporter:9121"]
